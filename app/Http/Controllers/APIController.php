@@ -19,6 +19,10 @@ class APIController extends Controller
         $validate = $request->validate([
             'byRate' => 'required|boolean',
             'byDate' => 'required|boolean',
+            'ship_to'=> 'required',
+            'ship_from'=> 'required',
+            'service_types'=>'required',
+            'container_specifications'=> 'required',
         ]);
         if ($request->byRate == $request->byDate) {
             return new ValidationException('Both cannot be same');
@@ -36,7 +40,7 @@ class APIController extends Controller
         //     // new \GuzzleHttp\Client(),
         //     $config
         // );
-        // $body = new GetRatesResult(); // \Swagger\Client\Models\GetRatesRequest | 
+        // $body = $request->all(); // \Swagger\Client\Models\GetRatesRequest | 
 
         // try {
         //     $result = $apiInstance->getRates($body);

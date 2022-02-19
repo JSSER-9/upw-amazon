@@ -26,6 +26,6 @@ Route::get('/get_shipment/{shipment_id}', [\App\Http\Controllers\APIController::
 
 Route::post('/purchase_labels/{shipment_id}', [\App\Http\Controllers\APIController::class, 'purchase_label']);
 
-Route::get('/cancel_shipment/{shipment_id}', [\App\Http\Controllers\APIController::class, 'cancel_shipment']);
+Route::post('/cancel_shipment/{shipment_id}', [\App\Http\Controllers\APIController::class, 'cancel_shipment']);
 
 Route::get('/get_tracking_info/{tracking_id}', [\App\Http\Controllers\APIController::class, 'get_tracking_info']);
