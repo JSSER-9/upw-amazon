@@ -435,7 +435,8 @@ class ShippingApi
             throw new \InvalidArgumentException('Missing the required parameter $body when calling getRates');
         }
 
-        $resourcePath = '/shipping/v1/rates';
+        // $resourcePath = '/shipping/v1/rates';
+        $resourcePath = '/shipping/v2/shipments/rates';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];

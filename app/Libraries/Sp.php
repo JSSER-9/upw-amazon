@@ -3,6 +3,9 @@ namespace App\Libraries;
 
 use Illuminate\Http\Request;
 use \ClouSale\AmazonSellingPartnerAPI;
+use ClouSale\AmazonSellingPartnerAPI\ApiException;
+use ClouSale\AmazonSellingPartnerAPI\Models\Shipping\GetRatesRequest;
+use Illuminate\Support\Facades\Storage;
 
 class Sp extends DatabaseLayer
 {
@@ -844,14 +847,28 @@ class Sp extends DatabaseLayer
 
 	public function getRates(Request $request){
 		$this->generateAcessToken();
-		$this->configureShippingApi();
+        $this->configureShippingApi();
 		//$body = $request->all(); 
 		
-		$body = new AmazonSellingPartnerAPI\Models\Shipping\GetRatesRequest($request->all());
-		
-		$result = $this->apiInstance->getRates($body);
-		$response = $result->getPayload();
-		return $result->getPayload();
+        $json =Storage::disk('public')->get('rate-req.json');
+        // dd($json);
+        $body= json_decode($json, true);
+		// $body = new AmazonSellingPartnerAPI\Models\Shipping\GetRatesRequest($request->all());
+        
+        try{
+            $result= $this->apiInstance->getRates($json);
+            return response()->json([
+                'data'=> $result
+            ]);
+            // dd($this->apiInstance->getRates($body));
+        }
+        catch(\Exception $e){
+            dd($e);
+        }
+        
+		// $result = $this->apiInstance->getRates($body);
+		// $response = $result->getPayload();
+		// return $result->getPayload();
 	}
     
 

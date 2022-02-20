@@ -1,4 +1,5 @@
 <?php
+
 /**
  * GetRatesRequest.
  *
@@ -47,10 +48,11 @@ class GetRatesRequest implements ModelInterface, ArrayAccess
      */
     protected static $swaggerTypes = [
         'ship_to' => '\ClouSale\AmazonSellingPartnerAPI\Models\Shipping\Address',
-'ship_from' => '\ClouSale\AmazonSellingPartnerAPI\Models\Shipping\Address',
-'service_types' => '\ClouSale\AmazonSellingPartnerAPI\Models\Shipping\ServiceTypeList',
-'ship_date' => '\DateTime',
-'container_specifications' => '\ClouSale\AmazonSellingPartnerAPI\Models\Shipping\ContainerSpecificationList',    ];
+        'ship_from' => '\ClouSale\AmazonSellingPartnerAPI\Models\Shipping\Address',
+        'service_types' => '\ClouSale\AmazonSellingPartnerAPI\Models\Shipping\ServiceTypeList',
+        'ship_date' => '\DateTime',
+        'container_specifications' => '\ClouSale\AmazonSellingPartnerAPI\Models\Shipping\ContainerSpecificationList',
+    ];
 
     /**
      * Array of property to format mappings. Used for (de)serialization.
@@ -59,10 +61,11 @@ class GetRatesRequest implements ModelInterface, ArrayAccess
      */
     protected static $swaggerFormats = [
         'ship_to' => null,
-'ship_from' => null,
-'service_types' => null,
-'ship_date' => 'date-time',
-'container_specifications' => null,    ];
+        'ship_from' => null,
+        'service_types' => null,
+        'ship_date' => 'date-time',
+        'container_specifications' => null,
+    ];
 
     /**
      * Array of property to type mappings. Used for (de)serialization.
@@ -92,10 +95,11 @@ class GetRatesRequest implements ModelInterface, ArrayAccess
      */
     protected static $attributeMap = [
         'ship_to' => 'shipTo',
-'ship_from' => 'shipFrom',
-'service_types' => 'serviceTypes',
-'ship_date' => 'shipDate',
-'container_specifications' => 'containerSpecifications',    ];
+        'ship_from' => 'shipFrom',
+        'service_types' => 'serviceTypes',
+        'ship_date' => 'shipDate',
+        'container_specifications' => 'containerSpecifications',
+    ];
 
     /**
      * Array of attributes to setter functions (for deserialization of responses).
@@ -104,10 +108,11 @@ class GetRatesRequest implements ModelInterface, ArrayAccess
      */
     protected static $setters = [
         'ship_to' => 'setShipTo',
-'ship_from' => 'setShipFrom',
-'service_types' => 'setServiceTypes',
-'ship_date' => 'setShipDate',
-'container_specifications' => 'setContainerSpecifications',    ];
+        'ship_from' => 'setShipFrom',
+        'service_types' => 'setServiceTypes',
+        'ship_date' => 'setShipDate',
+        'container_specifications' => 'setContainerSpecifications',
+    ];
 
     /**
      * Array of attributes to getter functions (for serialization of requests).
@@ -116,10 +121,11 @@ class GetRatesRequest implements ModelInterface, ArrayAccess
      */
     protected static $getters = [
         'ship_to' => 'getShipTo',
-'ship_from' => 'getShipFrom',
-'service_types' => 'getServiceTypes',
-'ship_date' => 'getShipDate',
-'container_specifications' => 'getContainerSpecifications',    ];
+        'ship_from' => 'getShipFrom',
+        'service_types' => 'getServiceTypes',
+        'ship_date' => 'getShipDate',
+        'container_specifications' => 'getContainerSpecifications',
+    ];
 
     /**
      * Array of attributes where the key is the local name,
@@ -182,6 +188,8 @@ class GetRatesRequest implements ModelInterface, ArrayAccess
         $this->container['service_types'] = isset($data['service_types']) ? $data['service_types'] : null;
         $this->container['ship_date'] = isset($data['ship_date']) ? $data['ship_date'] : null;
         $this->container['container_specifications'] = isset($data['container_specifications']) ? $data['container_specifications'] : null;
+        $this->container['taxDetails'] = isset($data['taxDetails']) ? $data['taxDetails'] : null;
+        $this->container['channelDetails'] = isset($data['channelDetails']) ? $data['channelDetails'] : null;
     }
 
     /**
