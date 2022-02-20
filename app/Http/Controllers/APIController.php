@@ -3,10 +3,6 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
-use ClouSale\AmazonSellingPartnerAPI\Api\ShippingApi;
-use ClouSale\AmazonSellingPartnerAPI\Configuration;
-use ClouSale\AmazonSellingPartnerAPI\Models\Shipping\GetRatesResult;
-use ClouSale\AmazonSellingPartnerAPI\Models\Shipping\PurchaseLabelsResult;
 use Dotenv\Exception\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,38 +12,50 @@ class APIController extends Controller
     //
     public function get_rates(Request $request)
     {
-        $validate = $request->validate([
+		
+        /*$validate = $request->validate([
             'byRate' => 'required|boolean',
             'byDate' => 'required|boolean',
-            'ship_to'=> 'required',
-            'ship_from'=> 'required',
-            'service_types'=>'required',
-            'container_specifications'=> 'required',
+            'shipTo'=> 'required',
+            'shipFrom'=> 'required',
+            'valueAddedServices'=>'required',
+            'packages'=> 'required',
+			'taxDetails' => 'required',
+			'channelDetails' => 'required'
         ]);
         if ($request->byRate == $request->byDate) {
             return new ValidationException('Both cannot be same');
-        }
-
+        }*/
+		
+		$reportConfig = new \App\Libraries\AmazonReport;
+		$reportConfig->refresh_token = env('AMAZON_REFRESH_TOKEN','');
+		$reportConfig->access_key = env('AMAZON_ACCESS_KEY');
+        $reportConfig->secret_key = env('AMAZON_SECRET_KEY');
+        $reportConfig->client_secret = env('AMAZON_CLIENT_SECRET');
+        $reportConfig->client_id = env('AMAZON_CLIENT_ID');
+        $reportConfig->region = "eu-west-1";
+		
+		$sp = new \App\Libraries\Sp($reportConfig);
+		$sp->getRates($request);
+		die;
         /**
          * Uncomment the lines to prefill values 
          */
-        // $config = $this->populateOptions();
+         $config = $this->populateOptions();
         // $config->setAccessToken('Atza|IwEBxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'); //access token of Selling Partner
 
-        // $apiInstance = new ShippingApi(
-        //     // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
-        //     // This is optional, `GuzzleHttp\Client` will be used as default.
-        //     // new \GuzzleHttp\Client(),
-        //     $config
-        // );
-        // $body = $request->all(); // \Swagger\Client\Models\GetRatesRequest | 
+         $apiInstance = new ShippingApi(
+             $config
+         );
+        $body = $request->all(); // \Swagger\Client\Models\GetRatesRequest | 
 
-        // try {
-        //     $result = $apiInstance->getRates($body);
-        //     print_r($result);
-        // } catch (\Exception $e) {
-        //     echo 'Exception when calling ShippingApi->getRates: ', $e->getMessage(), PHP_EOL;
-        // }
+        try {
+            $result = $apiInstance->getRates($body);
+            print_r($result);
+			die;
+        } catch (\Exception $e) {
+            echo 'Exception when calling ShippingApi->getRates: ', $e->getMessage(), PHP_EOL;
+        }
 
 
         /**
@@ -116,9 +124,6 @@ class APIController extends Controller
 
 
         $apiInstance = new ShippingApi(
-            // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
-            // This is optional, `GuzzleHttp\Client` will be used as default.
-            // new \GuzzleHttp\Client(),
             $config
         );
         try {
@@ -226,7 +231,7 @@ class APIController extends Controller
     public function populateOptions()
     {
         $options = [
-            'refresh_token' => '', // Aztr|...
+            'refresh_token' => env('AMAZON_REFRESH_TOKEN',''), // Aztr|...
             'client_id' => env('AMAZON_CLIENT_ID', ''), // App ID from Seller Central, amzn1.sellerapps.app.cfbfac4a-......
             'client_secret' => env('AMAZON_CLIENT_SECRET', ''), // The corresponding Client Secret
             'region' => \ClouSale\AmazonSellingPartnerAPI\SellingPartnerRegion::$EUROPE, // or NORTH_AMERICA / FAR_EAST
@@ -234,12 +239,12 @@ class APIController extends Controller
             'secret_key' => env('AMAZON_SECRET_KEY', ''), // Secret Key of AWS IAM User
             'endpoint' => \ClouSale\AmazonSellingPartnerAPI\SellingPartnerEndpoint::$EUROPE, // or NORTH_AMERICA / FAR_EAST
         ];
-        $accessToken = \ClouSale\AmazonSellingPartnerAPI\SellingPartnerOAuth::getAccessTokenFromRefreshToken(
-            $options['refresh_token'],
+		
+		$accessToken = \ClouSale\AmazonSellingPartnerAPI\SellingPartnerOAuth::getAccessTokenFromRefreshToken($options['refresh_token'],
             $options['client_id'],
-            $options['client_secret']
-        );
-
+            $options['client_secret']);
+        
+		
         $config = \ClouSale\AmazonSellingPartnerAPI\Configuration::getDefaultConfiguration();
         $config->setHost($options['endpoint']);
         $config->setAccessToken($accessToken);
