@@ -262,7 +262,8 @@ class Sp extends DatabaseLayer
         $config->setAccessKey($this->access_key);
         $config->setSecretKey($this->secret_key);
         $config->setRegion($this->region);
-        $this->apiInstance = new AmazonSellingPartnerAPI\Api\ShippingApi($config);
+        $this->apiInstance = new AmazonSellingPartnerAPI\Api\NewShippingApi($config);
+        // $this->apiInstance = new AmazonSellingPartnerAPI\Api\ShippingApi($config);
 
     }
 
@@ -848,18 +849,12 @@ class Sp extends DatabaseLayer
 	public function getRates(Request $request){
 		$this->generateAcessToken();
         $this->configureShippingApi();
-		//$body = $request->all(); 
-		
-        $json =Storage::disk('public')->get('rate-req.json');
-        // dd($json);
-        $body= json_decode($json, true);
+		$body = json_encode($request->all()); 
 		// $body = new AmazonSellingPartnerAPI\Models\Shipping\GetRatesRequest($request->all());
         
         try{
-            $result= $this->apiInstance->getRates($json);
-            return response()->json([
-                'data'=> $result
-            ]);
+            $result= $this->apiInstance->getRates($body);
+            return $result;
             // dd($this->apiInstance->getRates($body));
         }
         catch(\Exception $e){

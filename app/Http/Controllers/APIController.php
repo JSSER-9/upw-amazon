@@ -13,19 +13,17 @@ class APIController extends Controller
     public function get_rates(Request $request)
     {
 		
-        /*$validate = $request->validate([
+        $validate = $request->validate([
             'byRate' => 'required|boolean',
             'byDate' => 'required|boolean',
             'shipTo'=> 'required',
             'shipFrom'=> 'required',
-            'valueAddedServices'=>'required',
-            'packages'=> 'required',
+            'packages'=>'required',
+            'valueAddedServices'=> 'required',
 			'taxDetails' => 'required',
 			'channelDetails' => 'required'
         ]);
-        if ($request->byRate == $request->byDate) {
-            return new ValidationException('Both cannot be same');
-        }*/
+        
 		
 		$reportConfig = new \App\Libraries\AmazonReport;
 		$reportConfig->refresh_token = env('AMAZON_REFRESH_TOKEN','');
@@ -36,34 +34,8 @@ class APIController extends Controller
         $reportConfig->region = "eu-west-1";
 		
 		$sp = new \App\Libraries\Sp($reportConfig);
-		$sp->getRates($request);
-		die;
-        /**
-         * Uncomment the lines to prefill values 
-         */
-         $config = $this->populateOptions();
-        // $config->setAccessToken('Atza|IwEBxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'); //access token of Selling Partner
+		$result= $sp->getRates($request);
 
-         $apiInstance = new ShippingApi(
-             $config
-         );
-        $body = $request->all(); // \Swagger\Client\Models\GetRatesRequest | 
-
-        try {
-            $result = $apiInstance->getRates($body);
-            print_r($result);
-			die;
-        } catch (\Exception $e) {
-            echo 'Exception when calling ShippingApi->getRates: ', $e->getMessage(), PHP_EOL;
-        }
-
-
-        /**
-         * This snippet fetches data from local JSON response and displays result accordingly.
-         * For use kindly comment $result assignment for json_decode below
-         */
-        $json = Storage::disk('public')->get('rates.json');
-        $result = json_decode($json);
 
         if ($request->byRate) {
             $minRate = null;
