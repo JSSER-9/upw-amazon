@@ -860,10 +860,24 @@ class Sp extends DatabaseLayer
         catch(\Exception $e){
             dd($e);
         }
+	}
+    public function purchaseLabel($data, $shipmentId){
+		$this->generateAcessToken();
+        $this->configureShippingApi();
+		$body = json_encode($data, JSON_PRETTY_PRINT); 
         
-		// $result = $this->apiInstance->getRates($body);
-		// $response = $result->getPayload();
-		// return $result->getPayload();
+        // echo $body;
+        // die;
+		// $body = new AmazonSellingPartnerAPI\Models\Shipping\GetRatesRequest($request->all());
+        
+        try{
+            $result= $this->apiInstance->purchaseLabels($body, $shipmentId);
+            return $result;
+            // dd($this->apiInstance->getRates($body));
+        }
+        catch(\Exception $e){
+            dd($e);
+        }
 	}
     
 

@@ -690,7 +690,7 @@ class NewShippingApi extends ShippingApi
     {
         $request = $this->purchaseLabelsRequest($body, $shipment_id);
 
-        return $this->sendRequest($request, PurchaseLabelsResponse::class);
+        return $this->sendRequest($request);
     }
 
     /**
@@ -751,7 +751,12 @@ class NewShippingApi extends ShippingApi
             throw new \InvalidArgumentException('Missing the required parameter $shipment_id when calling purchaseLabels');
         }
 
-        $resourcePath = '/shipping/v1/shipments/{shipmentId}/purchaseLabels';
+        // echo $body;
+        // die;
+        // dd($body);
+        // $resourcePath = '/shipping/v1/shipments/{shipmentId}/purchaseLabels';
+        $resourcePath = '/shipping/v2/shipments';
+
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
@@ -759,13 +764,13 @@ class NewShippingApi extends ShippingApi
         $multipart = false;
 
         // path params
-        if (null !== $shipment_id) {
-            $resourcePath = str_replace(
-                '{'.'shipmentId'.'}',
-                ObjectSerializer::toPathValue($shipment_id),
-                $resourcePath
-            );
-        }
+        // if (null !== $shipment_id) {
+        //     $resourcePath = str_replace(
+        //         '{'.'shipmentId'.'}',
+        //         ObjectSerializer::toPathValue($shipment_id),
+        //         $resourcePath
+        //     );
+        // }
 
         return $this->generateRequest($multipart, $formParams, $queryParams, $resourcePath, $headerParams, 'POST', $httpBody);
     }

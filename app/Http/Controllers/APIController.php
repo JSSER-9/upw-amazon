@@ -12,35 +12,37 @@ class APIController extends Controller
     //
     public function get_rates(Request $request)
     {
-		
+
         $validate = $request->validate([
             'byRate' => 'required|boolean',
             'byDate' => 'required|boolean',
-            'shipTo'=> 'required',
-            'shipFrom'=> 'required',
-            'packages'=>'required',
-            'valueAddedServices'=> 'required',
-			'taxDetails' => 'required',
-			'channelDetails' => 'required'
+            'shipTo' => 'required',
+            'shipFrom' => 'required',
+            'packages' => 'required',
+            'valueAddedServices' => 'required',
+            'taxDetails' => 'required',
+            'channelDetails' => 'required'
         ]);
-        
-		
-		$reportConfig = new \App\Libraries\AmazonReport;
-		$reportConfig->refresh_token = env('AMAZON_REFRESH_TOKEN','');
-		$reportConfig->access_key = env('AMAZON_ACCESS_KEY');
+
+
+        $reportConfig = new \App\Libraries\AmazonReport;
+        $reportConfig->refresh_token = env('AMAZON_REFRESH_TOKEN', '');
+        $reportConfig->access_key = env('AMAZON_ACCESS_KEY');
         $reportConfig->secret_key = env('AMAZON_SECRET_KEY');
         $reportConfig->client_secret = env('AMAZON_CLIENT_SECRET');
         $reportConfig->client_id = env('AMAZON_CLIENT_ID');
         $reportConfig->region = "eu-west-1";
-		
-		$sp = new \App\Libraries\Sp($reportConfig);
-		$result= $sp->getRates($request);
 
+        $sp = new \App\Libraries\Sp($reportConfig);
+        $result = $sp->getRates($request);
+
+        // return response()->json($result);
+        $request_token = $result->payload->requestToken;
 
         if ($request->byRate) {
             $minRate = null;
             $minRateObject = null;
-            collect($result->payload->rates)->each(function ($rate) use (&$minRate, &$minRateObject) {
+            collect($result->payload->rates)->each(function ($rate) use (&$minRate, &$minRateObject, $request_token, $sp) {
                 if (is_null($minRate)) {
                     $minRate = $rate->totalCharge;
                     $minRateObject = $rate;
@@ -53,6 +55,7 @@ class APIController extends Controller
                 else if ($rate->totalCharge == $minRate) {
                 }
             });
+            $this->purchaseLabelAPI($request_token, $minRateObject, $sp);
             return response()->json([
                 'data' => $minRateObject,
                 'message' => 'Minimum Rate'
@@ -62,7 +65,7 @@ class APIController extends Controller
             $minDeliveryWindow = null;
             $minDeliveryObject = null;
 
-            collect($result->payload->rates)->each(function ($rate) use (&$minDeliveryWindow, &$minDeliveryObject) {
+            collect($result->payload->rates)->each(function ($rate) use (&$minDeliveryWindow, &$minDeliveryObject, $request_token, $sp) {
                 $dates = $rate->promise->deliveryWindow;
                 $end = Carbon::parse($dates->end);
                 $difference = $end->diffInHours($dates->start);
@@ -78,8 +81,11 @@ class APIController extends Controller
                 else if ($minDeliveryWindow == $difference) {
                 }
             });
+
+            $this->purchaseLabelAPI($request_token, $minDeliveryObject, $sp);
+
             return response()->json([
-                'data' => $minDeliveryWindow,
+                'data' => $minDeliveryObject,
                 'message' => 'Minimum Delivery Time',
                 'minimum_time(in Hrs)' => $minDeliveryWindow
             ]);
@@ -203,7 +209,7 @@ class APIController extends Controller
     public function populateOptions()
     {
         $options = [
-            'refresh_token' => env('AMAZON_REFRESH_TOKEN',''), // Aztr|...
+            'refresh_token' => env('AMAZON_REFRESH_TOKEN', ''), // Aztr|...
             'client_id' => env('AMAZON_CLIENT_ID', ''), // App ID from Seller Central, amzn1.sellerapps.app.cfbfac4a-......
             'client_secret' => env('AMAZON_CLIENT_SECRET', ''), // The corresponding Client Secret
             'region' => \ClouSale\AmazonSellingPartnerAPI\SellingPartnerRegion::$EUROPE, // or NORTH_AMERICA / FAR_EAST
@@ -211,12 +217,14 @@ class APIController extends Controller
             'secret_key' => env('AMAZON_SECRET_KEY', ''), // Secret Key of AWS IAM User
             'endpoint' => \ClouSale\AmazonSellingPartnerAPI\SellingPartnerEndpoint::$EUROPE, // or NORTH_AMERICA / FAR_EAST
         ];
-		
-		$accessToken = \ClouSale\AmazonSellingPartnerAPI\SellingPartnerOAuth::getAccessTokenFromRefreshToken($options['refresh_token'],
+
+        $accessToken = \ClouSale\AmazonSellingPartnerAPI\SellingPartnerOAuth::getAccessTokenFromRefreshToken(
+            $options['refresh_token'],
             $options['client_id'],
-            $options['client_secret']);
-        
-		
+            $options['client_secret']
+        );
+
+
         $config = \ClouSale\AmazonSellingPartnerAPI\Configuration::getDefaultConfiguration();
         $config->setHost($options['endpoint']);
         $config->setAccessToken($accessToken);
@@ -234,5 +242,46 @@ class APIController extends Controller
         if ($input != "") { // storing image in storage/app/public Folder
             Storage::disk('public')->put($file_name, base64_decode($input));
         }
+    }
+    private function purchaseLabelAPI($request_token, $data, $sp)
+    {
+
+        $shipmentData = [
+            'requestToken' => $request_token,
+            'rateId' => $data->rateId,
+        ];
+        $shipmentData['requestedValueAddedServices'] = array();
+
+
+        $shipmentData['requestedValueAddedServices'][] = [
+            'id' => $data->availableValueAddedServiceGroups[0]->valueAddedServices[0]->name
+        ];
+        collect($data->supportedDocumentSpecifications)->each(function ($d) use (&$shipmentData) {
+            if ($d->format) {
+                $shipmentData['requestedDocumentSpecification'] = [
+                    'format' => 'PNG',
+                    'size' => $d->size,
+                    'dpi' => $d->printOptions[0]->supportedDPIs[0],
+                    'pageLayout' => $d->printOptions[0]->supportedPageLayouts[0],
+                    'needFileJoining' => $d->printOptions[0]->supportedFileJoiningOptions[0],
+                    'requestedDocumentTypes' => [
+                        $d->printOptions[0]->supportedDocumentDetails[0]->name
+                    ]
+                ];
+            }
+        });
+
+        $res = $sp->purchaseLabel($shipmentData, $request_token);
+
+        collect($res->payload->packageDocumentDetails)->map(function ($doc) use ($request_token) {
+            
+            if ($doc->packageDocuments[0]->format == 'PNG') {
+                $this->convertBase64ToImage($doc->packageDocuments[0]->contents, $request_token);
+            }
+        });
+        return response()->json([
+            'data' => [],
+            'message' => 'Purchase Label'
+        ]);
     }
 }
