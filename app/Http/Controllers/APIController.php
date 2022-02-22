@@ -107,7 +107,22 @@ class APIController extends Controller
         $reportConfig->region = "eu-west-1";
 
         $sp = new \App\Libraries\Sp($reportConfig);
-        $result = $sp->getShipment($request, $shipment_id);
+        $result = $sp->getShipmentDocs($shipment_id, $request);
+
+        // return response()->json([
+        //     'data' => $result->payload,
+        //     'message' => 'Shipment Documents',
+        // ]);
+        $request_token= $result->payload->shipmentId;
+        collect($result->payload->packageDocumentDetail->packageDocuments)->map(function ($doc) use ($request_token) {
+            if ($doc->format == 'PNG') {
+                $this->convertBase64ToImage($doc->contents, $request_token);
+            }
+        });
+        return response()->json([
+            'data' => $result->payload,
+            'message' => 'Shipment Documents',
+        ]);
     }
 
     public function cancel_shipment(Request $request, $shipment_id)
@@ -148,53 +163,6 @@ class APIController extends Controller
             'message' => 'Tracking Information',
         ]);
     }
-    public function purchase_label(Request $request, $shipment_id)
-    {
-        // $config = $this->populateOptions();
-
-        // $validate = $request->validate([
-        //     'rate_id' => 'required',
-        //     'label_specification' => 'required',
-        // ]);
-
-        // $apiInstance = new ShippingApi(
-        //     // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
-        //     // This is optional, `GuzzleHttp\Client` will be used as default.
-        //     // new \GuzzleHttp\Client(),
-        //     $config
-        // );
-
-        // $body = $request->all();
-
-        // // $body = new PurchaseLabelsResult(); // \Swagger\Client\Models\PurchaseLabelsRequest | 
-
-        // try {
-        //     $result = $apiInstance->purchaseLabels($body, $shipment_id);
-        //     return response()->json([
-        //         'data' => $result,
-        //         'message' => 'Purchase Label'
-        //     ]);
-        // } catch (\Exception $e) {
-        //     echo 'Exception when calling ShippingApi->purchaseLabels: ', $e->getMessage(), PHP_EOL;
-        // }
-
-        /**
-         * This snippet fetches data from local and parses the json to convert and store image to png
-         * For use kindly comment $result assignment for json_decode below
-         */
-        $json = Storage::disk('public')->get('shipments.json');
-        $result = json_decode($json);
-        collect($result->payload->packageDocumentDetail->packageDocuments)->map(function ($doc) use ($shipment_id) {
-            if ($doc->format == 'PNG') {
-                $this->convertBase64ToImage($doc->contents, $shipment_id);
-            }
-        });
-        return response()->json([
-            'data' => [],
-            'message' => 'Purchase Label'
-        ]);
-    }
-
 
     public function populateOptions()
     {

@@ -914,20 +914,22 @@ class Sp extends DatabaseLayer
             dd($e);
         }
 	}
-    public function getShipment($data, $shipmentId){
+    public function getShipmentDocs($shipment_id, $request){
 		$this->generateAcessToken();
         $this->configureShippingApi();
-		$body = json_encode($data); 
+        
+        $data= $request->all();
         
         try{
-            $result= $this->apiInstance->getShipment($body, $shipmentId);
+            $result= $this->apiInstance->getShipmentDocuments($shipment_id, $data);
+            // dd($result);
             return $result;
+            // dd($this->apiInstance->getRates($body));
         }
         catch(\Exception $e){
             dd($e);
         }
-	}
-    
+	}    
 
     public function fetchOrderAndSaveByDate($marketPlaceIds, $createdAfter, $createdBefore = null)
     {

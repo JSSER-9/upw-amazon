@@ -471,6 +471,23 @@ class NewShippingApi extends ShippingApi
     }
 
     /**
+     * Operation getShipmentDocuments.
+     *
+     * @param string $shipment_id shipment_id (required)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \ClouSale\AmazonSellingPartnerAPI\ApiException on non-2xx response
+     *
+     * @return \ClouSale\AmazonSellingPartnerAPI\Models\Shipping\GetShipmentResponse
+     */
+    public function getShipmentDocuments($shipment_id, $data)
+    {
+        list($response) = $this->getShipmentDocumentsWithHttpInfo($shipment_id, $data);
+
+        return $response;
+    }
+
+    /**
      * Operation getShipmentWithHttpInfo.
      *
      * @param string $shipment_id (required)
@@ -483,6 +500,23 @@ class NewShippingApi extends ShippingApi
     public function getShipmentWithHttpInfo($shipment_id)
     {
         $request = $this->getShipmentRequest($shipment_id);
+
+        return $this->sendRequest($request, null);
+    }
+
+    /**
+     * Operation getShipmentDocumentsWithHttpInfo.
+     *
+     * @param string $shipment_id (required)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \ClouSale\AmazonSellingPartnerAPI\ApiException on non-2xx response
+     *
+     * @return array of \ClouSale\AmazonSellingPartnerAPI\Models\Shipping\GetShipmentResponse, HTTP status code, HTTP response headers (array of strings)
+     */
+    public function getShipmentDocumentsWithHttpInfo($shipment_id, $data)
+    {
+        $request = $this->getShipmentDocumentsRequest($shipment_id, $data);
 
         return $this->sendRequest($request, null);
     }
@@ -545,6 +579,42 @@ class NewShippingApi extends ShippingApi
         $httpBody = '';
         $multipart = false;
 
+        // path params
+        if (null !== $shipment_id) {
+            $resourcePath = str_replace(
+                '{' . 'shipmentId' . '}',
+                ObjectSerializer::toPathValue($shipment_id),
+                $resourcePath
+            );
+        }
+
+        return $this->generateRequest($multipart, $formParams, $queryParams, $resourcePath, $headerParams, 'GET', $httpBody);
+    }
+
+    /**
+     * Create request for operation 'getShipmentDocuments'.
+     *
+     * @param string $shipment_id (required)
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return \GuzzleHttp\Psr7\Request
+     */
+    protected function getShipmentDocumentsRequest($shipment_id, $data)
+    {
+        // verify the required parameter 'shipment_id' is set
+        if (null === $shipment_id || (is_array($shipment_id) && 0 === count($shipment_id))) {
+            throw new \InvalidArgumentException('Missing the required parameter $shipment_id when calling getShipment');
+        }
+
+        $resourcePath = '/shipping/v2/shipments/{shipmentId}/documents';
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+
+        $queryParams= $data;
         // path params
         if (null !== $shipment_id) {
             $resourcePath = str_replace(
