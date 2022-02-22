@@ -879,6 +879,54 @@ class Sp extends DatabaseLayer
             dd($e);
         }
 	}
+    public function cancelShipment($shipmentId){
+		$this->generateAcessToken();
+        $this->configureShippingApi();
+        
+        // echo $body;
+        // die;
+		// $body = new AmazonSellingPartnerAPI\Models\Shipping\GetRatesRequest($request->all());
+        
+        try{
+            $result= $this->apiInstance->cancelShipment($shipmentId);
+            // dd($result);
+            return $result;
+            // dd($this->apiInstance->getRates($body));
+        }
+        catch(\Exception $e){
+            dd($e);
+        }
+	}
+    public function trackShipment($request){
+		$this->generateAcessToken();
+        $this->configureShippingApi();
+        
+        $data= $request->all();
+    
+        
+        try{
+            $result= $this->apiInstance->getTrackingInformationNew($data);
+            // dd($result);
+            return $result;
+            // dd($this->apiInstance->getRates($body));
+        }
+        catch(\Exception $e){
+            dd($e);
+        }
+	}
+    public function getShipment($data, $shipmentId){
+		$this->generateAcessToken();
+        $this->configureShippingApi();
+		$body = json_encode($data); 
+        
+        try{
+            $result= $this->apiInstance->getShipment($body, $shipmentId);
+            return $result;
+        }
+        catch(\Exception $e){
+            dd($e);
+        }
+	}
     
 
     public function fetchOrderAndSaveByDate($marketPlaceIds, $createdAfter, $createdBefore = null)

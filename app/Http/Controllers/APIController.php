@@ -55,7 +55,9 @@ class APIController extends Controller
                 else if ($rate->totalCharge == $minRate) {
                 }
             });
-            $this->purchaseLabelAPI($request_token, $minRateObject, $sp);
+            $shipment_id= $this->purchaseLabelAPI($request_token, $minRateObject, $sp);
+            $minRateObject->shipment_id= $shipment_id;
+            
             return response()->json([
                 'data' => $minRateObject,
                 'message' => 'Minimum Rate'
@@ -82,8 +84,9 @@ class APIController extends Controller
                 }
             });
 
-            $this->purchaseLabelAPI($request_token, $minDeliveryObject, $sp);
+            $shipment_id= $this->purchaseLabelAPI($request_token, $minDeliveryObject, $sp);
 
+            $minDeliveryObject->shipment_id= $shipment_id;
             return response()->json([
                 'data' => $minDeliveryObject,
                 'message' => 'Minimum Delivery Time',
@@ -95,68 +98,55 @@ class APIController extends Controller
     public function get_shipment(Request $request, $shipment_id)
     {
 
-        /**
-         * Uncomment the lines to prefill values 
-         */
-        $config = $this->populateOptions();
+        $reportConfig = new \App\Libraries\AmazonReport;
+        $reportConfig->refresh_token = env('AMAZON_REFRESH_TOKEN', '');
+        $reportConfig->access_key = env('AMAZON_ACCESS_KEY');
+        $reportConfig->secret_key = env('AMAZON_SECRET_KEY');
+        $reportConfig->client_secret = env('AMAZON_CLIENT_SECRET');
+        $reportConfig->client_id = env('AMAZON_CLIENT_ID');
+        $reportConfig->region = "eu-west-1";
 
-
-        $apiInstance = new ShippingApi(
-            $config
-        );
-        try {
-            $result = $apiInstance->getShipment($shipment_id);
-            return response()->json([
-                'data' => $result,
-                'message' => 'Shipment Data'
-            ]);
-        } catch (\Exception $e) {
-            echo 'Exception when calling ShippingApi->getShipment: ', $e->getMessage(), PHP_EOL;
-        }
+        $sp = new \App\Libraries\Sp($reportConfig);
+        $result = $sp->getShipment($request, $shipment_id);
     }
 
     public function cancel_shipment(Request $request, $shipment_id)
     {
-        $config = $this->populateOptions();
+        $reportConfig = new \App\Libraries\AmazonReport;
+        $reportConfig->refresh_token = env('AMAZON_REFRESH_TOKEN', '');
+        $reportConfig->access_key = env('AMAZON_ACCESS_KEY');
+        $reportConfig->secret_key = env('AMAZON_SECRET_KEY');
+        $reportConfig->client_secret = env('AMAZON_CLIENT_SECRET');
+        $reportConfig->client_id = env('AMAZON_CLIENT_ID');
+        $reportConfig->region = "eu-west-1";
 
+        $sp = new \App\Libraries\Sp($reportConfig);
+        $result = $sp->cancelShipment($shipment_id);
 
-        $apiInstance = new ShippingApi(
-            // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
-            // This is optional, `GuzzleHttp\Client` will be used as default.
-            // new \GuzzleHttp\Client(),
-            $config
-        );
-
-        try {
-            $result = $apiInstance->cancelShipment($shipment_id);
-            return response()->json([
-                'data' => $result,
-                'message' => 'Shipment Data'
-            ]);
-        } catch (\Exception $e) {
-            echo 'Exception when calling ShippingApi->cancelShipment: ', $e->getMessage(), PHP_EOL;
-        }
+        return response()->json([
+            'data' => $result->payload,
+            'message' => 'Shipment Cancelled',
+        ]);
     }
 
-    public function get_tracking_info(Request $request, $tracking_id)
+    public function get_tracking_info(Request $request)
     {
 
-        $config = $this->populateOptions();
-        $apiInstance = new ShippingApi(
-            // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
-            // This is optional, `GuzzleHttp\Client` will be used as default.
-            // new \GuzzleHttp\Client(),
-            $config
-        );
-        try {
-            $result = $apiInstance->getTrackingInformation($tracking_id);
-            return response()->json([
-                'data' => $result,
-                'message' => 'Shipment Tracking Information'
-            ]);
-        } catch (\Exception $e) {
-            echo 'Exception when calling ShippingApi->getTrackingInformation: ', $e->getMessage(), PHP_EOL;
-        }
+        $reportConfig = new \App\Libraries\AmazonReport;
+        $reportConfig->refresh_token = env('AMAZON_REFRESH_TOKEN', '');
+        $reportConfig->access_key = env('AMAZON_ACCESS_KEY');
+        $reportConfig->secret_key = env('AMAZON_SECRET_KEY');
+        $reportConfig->client_secret = env('AMAZON_CLIENT_SECRET');
+        $reportConfig->client_id = env('AMAZON_CLIENT_ID');
+        $reportConfig->region = "eu-west-1";
+
+        $sp = new \App\Libraries\Sp($reportConfig);
+        $result = $sp->trackShipment($request);
+
+        return response()->json([
+            'data' => $result,
+            'message' => 'Tracking Information',
+        ]);
     }
     public function purchase_label(Request $request, $shipment_id)
     {
@@ -273,15 +263,14 @@ class APIController extends Controller
 
         $res = $sp->purchaseLabel($shipmentData, $request_token);
 
+        
         collect($res->payload->packageDocumentDetails)->map(function ($doc) use ($request_token) {
             
             if ($doc->packageDocuments[0]->format == 'PNG') {
                 $this->convertBase64ToImage($doc->packageDocuments[0]->contents, $request_token);
             }
         });
-        return response()->json([
-            'data' => [],
-            'message' => 'Purchase Label'
-        ]);
+
+        return $res->payload->shipmentId;
     }
 }

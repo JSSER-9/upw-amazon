@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ShippingApi.
  *
@@ -103,7 +104,7 @@ class NewShippingApi extends ShippingApi
     {
         $request = $this->cancelShipmentRequest($shipment_id);
 
-        return $this->sendRequest($request, CancelShipmentResponse::class);
+        return $this->sendRequest($request, null);
     }
 
     /**
@@ -157,7 +158,9 @@ class NewShippingApi extends ShippingApi
             throw new \InvalidArgumentException('Missing the required parameter $shipment_id when calling cancelShipment');
         }
 
-        $resourcePath = '/shipping/v1/shipments/{shipmentId}/cancel';
+        // $resourcePath = '/shipping/v1/shipments/{shipmentId}/cancel';
+        $resourcePath = '/shipping/v2/shipments/{shipmentId}/cancel';
+
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
@@ -167,13 +170,14 @@ class NewShippingApi extends ShippingApi
         // path params
         if (null !== $shipment_id) {
             $resourcePath = str_replace(
-                '{'.'shipmentId'.'}',
+                '{' . 'shipmentId' . '}',
                 ObjectSerializer::toPathValue($shipment_id),
                 $resourcePath
             );
         }
+        // dd($resourcePath);
 
-        return $this->generateRequest($multipart, $formParams, $queryParams, $resourcePath, $headerParams, 'POST', $httpBody);
+        return $this->generateRequest($multipart, $formParams, $queryParams, $resourcePath, $headerParams, 'PUT', $httpBody);
     }
 
     /**
@@ -480,7 +484,7 @@ class NewShippingApi extends ShippingApi
     {
         $request = $this->getShipmentRequest($shipment_id);
 
-        return $this->sendRequest($request, GetShipmentsResponse::class);
+        return $this->sendRequest($request, null);
     }
 
     /**
@@ -544,7 +548,7 @@ class NewShippingApi extends ShippingApi
         // path params
         if (null !== $shipment_id) {
             $resourcePath = str_replace(
-                '{'.'shipmentId'.'}',
+                '{' . 'shipmentId' . '}',
                 ObjectSerializer::toPathValue($shipment_id),
                 $resourcePath
             );
@@ -563,9 +567,9 @@ class NewShippingApi extends ShippingApi
      *
      * @return \ClouSale\AmazonSellingPartnerAPI\Models\Shipping\GetTrackingInformationResponse
      */
-    public function getTrackingInformation($tracking_id)
+    public function getTrackingInformationNew($data)
     {
-        list($response) = $this->getTrackingInformationWithHttpInfo($tracking_id);
+        list($response) = $this->getTrackingInformationWithHttpInfoNew($data);
 
         return $response;
     }
@@ -580,11 +584,11 @@ class NewShippingApi extends ShippingApi
      *
      * @return array of \ClouSale\AmazonSellingPartnerAPI\Models\Shipping\GetTrackingInformationResponse, HTTP status code, HTTP response headers (array of strings)
      */
-    public function getTrackingInformationWithHttpInfo($tracking_id)
+    public function getTrackingInformationWithHttpInfoNew($data)
     {
-        $request = $this->getTrackingInformationRequest($tracking_id);
+        $request = $this->getTrackingInformationRequestNew($data);
 
-        return $this->sendRequest($request, GetTrackingInformationResponse::class);
+        return $this->sendRequest($request, null);
     }
 
     /**
@@ -631,28 +635,32 @@ class NewShippingApi extends ShippingApi
      *
      * @return \GuzzleHttp\Psr7\Request
      */
-    protected function getTrackingInformationRequest($tracking_id)
+    protected function getTrackingInformationRequestNew($data)
     {
         // verify the required parameter 'tracking_id' is set
-        if (null === $tracking_id || (is_array($tracking_id) && 0 === count($tracking_id))) {
+        if (null === $data || (is_array($data) && 0 === count($data))) {
             throw new \InvalidArgumentException('Missing the required parameter $tracking_id when calling getTrackingInformation');
         }
 
-        $resourcePath = '/shipping/v1/tracking/{trackingId}';
+        // $resourcePath = '/shipping/v1/tracking/{trackingId}';
+        $resourcePath = '/shipping/v2/tracking';
+
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
         $multipart = false;
 
-        // path params
-        if (null !== $tracking_id) {
-            $resourcePath = str_replace(
-                '{'.'trackingId'.'}',
-                ObjectSerializer::toPathValue($tracking_id),
-                $resourcePath
-            );
-        }
+        $queryParams= $data;
+        
+        // // path params
+        // if (null !== $tracking_id) {
+        //     $resourcePath = str_replace(
+        //         '{' . 'trackingId' . '}',
+        //         ObjectSerializer::toPathValue($tracking_id),
+        //         $resourcePath
+        //     );
+        // }
 
         return $this->generateRequest($multipart, $formParams, $queryParams, $resourcePath, $headerParams, 'GET', $httpBody);
     }
@@ -983,7 +991,7 @@ class NewShippingApi extends ShippingApi
         // path params
         if (null !== $shipment_id) {
             $resourcePath = str_replace(
-                '{'.'shipmentId'.'}',
+                '{' . 'shipmentId' . '}',
                 ObjectSerializer::toPathValue($shipment_id),
                 $resourcePath
             );
@@ -991,7 +999,7 @@ class NewShippingApi extends ShippingApi
         // path params
         if (null !== $tracking_id) {
             $resourcePath = str_replace(
-                '{'.'trackingId'.'}',
+                '{' . 'trackingId' . '}',
                 ObjectSerializer::toPathValue($tracking_id),
                 $resourcePath
             );
